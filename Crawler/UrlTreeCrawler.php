@@ -1,0 +1,234 @@
+<?php
+
+namespace L91\Bundle\SeoBundle\Crawler;
+
+use GuzzleHttp\Client;
+use GuzzleHttp\Exception\ConnectException;
+use L91\Bundle\SeoBundle\Entity\Url;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Log\LoggerAwareInterface;
+use Psr\Log\LoggerAwareTrait;
+use Psr\Log\NullLogger;
+use Symfony\Component\DomCrawler\Crawler;
+
+class UrlTreeCrawler implements LoggerAwareInterface
+{
+    use LoggerAwareTrait;
+
+    /**
+     * @var integer
+     */
+    private $maxDepth;
+
+    /**
+     * @var Client
+     */
+    private $client;
+
+    /**
+     * @var string
+     */
+    private $uri;
+
+    /**
+     * @var bool
+     */
+    private $external;
+
+    /**
+     * @var array
+     */
+    private $queueTree = [];
+
+    /**
+     * @var integer
+     */
+    private $currentDepth = 0;
+
+    /**
+     * @var Url[]
+     */
+    private $urlList = [];
+
+    /**
+     * UrlTreeCrawler constructor.
+     *
+     * @param string $uri
+     * @param int $maxDepth
+     * @param array $clientOptions
+     * @param bool $external
+     */
+    public function __construct($uri, $maxDepth = 0, $clientOptions = [], $external = false)
+    {
+        $this->client = new Client($clientOptions);
+        $this->uri = $uri;
+        $this->addUrl($uri);
+        $this->maxDepth = $maxDepth;
+        $this->external = $external;
+        $this->logger = new NullLogger();
+    }
+
+    /**
+     * Crawl url tree.
+     *
+     * @return Url[]
+     */
+    public function crawl()
+    {
+        $this->urlList = [];
+
+        /** @var Url[] $uriList */
+        while ($urlList = array_pop($this->queueTree)) {
+            ++$this->currentDepth;
+
+            /** @var Url $url */
+            while($url = array_pop($urlList)) {
+                usleep(500000);
+
+                $this->logger->info(sprintf('Crawl url "%s" at depth "%s"', $url->getUri(), $this->currentDepth));
+                yield $this->crawlUrl($url);
+            }
+
+            if ($this->currentDepth > $this->maxDepth) {
+                $this->logger->info(sprintf('Max depth "%s" reached', $this->maxDepth));
+
+                break;
+            }
+        }
+
+        $this->logger->info(sprintf('Finished crawl with "%s" results', count($this->urlList)));
+    }
+
+    /**
+     * Crawl url.
+     *
+     * @param Url $url
+     *
+     * @return Url
+     */
+    private function crawlUrl(Url $url)
+    {
+        try {
+            $response = $this->request($url->getUri());
+        } catch (ConnectException $e) {
+            $url->setTimeout(true);
+            $url->setStatusCode(0);
+
+            return $url;
+        }
+
+        $statusCode = $response->getStatusCode();
+        $url->setTimeout(false);
+        $url->setStatusCode($statusCode);
+
+        switch ($statusCode) {
+            case 200:
+                if ($url->getType() == Url::TYPE_INTERNAL) {
+                    $this->analyseContent($response->getBody()->getContents(), $url);
+                }
+
+                break;
+        }
+
+        return $url;
+    }
+
+    /**
+     * Analyse content.
+     *
+     * @param string $content
+     * @param Url $url
+     */
+    private function analyseContent($content, Url $url)
+    {
+        $crawler = new Crawler($content, $url->getUri());
+        foreach ($crawler->filter('a, link, area')->links() as $link) {
+            if ($link->getNode()->nodeName === 'link'
+                && !in_array($link->getNode()->getAttribute('rel'), ['prev', 'next', 'canonical'])
+            ) {
+                continue;
+            }
+
+            $this->logger->info(sprintf('Found url "%s"', $link->getUri()));
+            $this->addUrl($link->getUri());
+        }
+    }
+
+    /**
+     * Add url.
+     *
+     * @param string $uri
+     */
+    private function addUrl($uri)
+    {
+        // Split hash urls correctly.
+        $uri = explode('#', $uri, 2)[0];
+
+        $url = $this->getOrCreateUrl($uri);
+
+        // If was crawled do nothing.
+        if ($url->getStatusCode() || $url->getTimeout()) {
+            return;
+        }
+
+        // If external is not activate do not crawl external urls.
+        if (!$this->external && $url->getType() === Url::TYPE_EXTERNAL) {
+            return;
+        }
+
+        // Else add url to crawl list.
+        if (!isset($this->queueTree[$url->getDepth()])) {
+            $this->queueTree[$url->getDepth()] = [];
+        }
+
+        array_push($this->queueTree[$url->getDepth()], $url);
+    }
+
+    /**
+     * Get or create url.
+     *
+     * @param string $uri
+     *
+     * @return Url
+     */
+    private function getOrCreateUrl($uri)
+    {
+        if (!isset($this->urlList[$uri])) {
+            $url = new Url($uri);
+            $url->setDepth($this->currentDepth);
+
+            // Set type to external when external url.
+            if ($this->isExternal($url)) {
+                $url->setType(Url::TYPE_EXTERNAL);
+            }
+
+            $this->urlList[$uri] = $url;
+        }
+
+        return $this->urlList[$uri];
+    }
+
+    /**
+     * Is external url.
+     *
+     * @param Url $url
+     *
+     * @return bool
+     */
+    private function isExternal(Url $url)
+    {
+        return (strpos($url->getUri(), $this->uri) === false);
+    }
+
+    /**
+     * Request a specific url.
+     *
+     * @param string $uri
+     *
+     * @return ResponseInterface
+     */
+    private function request($uri)
+    {
+        return $this->client->request('GET', $uri, ['stats']);
+    }
+}
