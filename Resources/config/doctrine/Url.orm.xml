@@ -1,0 +1,43 @@
+<doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping http://doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
+    <entity name="L91\Bundle\SeoBundle\Entity\Url"
+            table="seo_url"
+            repository-class="L91\Bundle\SeoBundle\Entity\Repository\UrlRepository">
+        <id name="id" type="integer" column="id">
+            <generator strategy="AUTO"/>
+        </id>
+
+        <field name="uri" type="text"/>
+        <field name="statusCode" type="integer"/>
+        <field name="type" type="string"/>
+        <field name="timeout" type="boolean"/>
+        <field name="created" type="datetime"/>
+
+        <!-- Tree -->
+        <field name="left" column="left" type="integer">
+            <gedmo:tree-left/>
+        </field>
+
+        <field name="right" column="right" type="integer">
+            <gedmo:tree-right/>
+        </field>
+
+        <field name="depth" column="depth" type="integer">
+            <gedmo:tree-level/>
+        </field>
+
+        <many-to-one field="parent" target-entity="L91\Bundle\SeoBundle\Entity\Url" inversed-by="children">
+            <join-column name="parent_id" referenced-column-name="id" on-delete="CASCADE"/>
+            <gedmo:tree-parent/>
+        </many-to-one>
+
+        <one-to-many field="children" target-entity="L91\Bundle\SeoBundle\Entity\Url" mapped-by="parent">
+            <order-by>
+                <order-by-field name="left" direction="ASC" />
+            </order-by>
+        </one-to-many>
+
+        <gedmo:tree type="nested"/>
+    </entity>
+</doctrine-mapping>

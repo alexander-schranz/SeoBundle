@@ -2,6 +2,9 @@
 
 namespace L91\Bundle\SeoBundle\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
+
 class Url
 {
     const TYPE_INTERNAL = 'internal';
@@ -23,28 +26,52 @@ class Url
     private $type = self::TYPE_INTERNAL;
 
     /**
-     * @var int
-     */
-    private $depth = 0;
-
-    /**
      * @var bool
      */
     private $timeout = false;
 
     /**
-     * Url constructor.
-     *
+     * @var int
+     */
+    private $left;
+
+    /**
+     * @var int
+     */
+    private $right;
+
+    /**
+     * @var int
+     */
+    private $depth;
+
+    /**
+     * @var Url
+     */
+    private $parent;
+
+    /**
+     * @var Collection|Url[]
+     */
+    private $children;
+
+    /**
+     * @var \DateTime
+     */
+    private $created;
+
+    /**
      * @param string $uri
      */
-    public function __construct($uri)
+    public function __construct($uri, $depth = 0)
     {
         $this->uri = $uri;
+        $this->depth = $depth;
+        $this->created = new \DateTime();
+        $this->children = new ArrayCollection();
     }
 
     /**
-     * Get uri.
-     *
      * @return string
      */
     public function getUri()
@@ -53,8 +80,6 @@ class Url
     }
 
     /**
-     * Get status code.
-     *
      * @return int
      */
     public function getStatusCode()
@@ -63,18 +88,18 @@ class Url
     }
 
     /**
-     * Set status code.
-     *
      * @param int $statusCode
+     *
+     * @return $this
      */
     public function setStatusCode($statusCode)
     {
         $this->statusCode = $statusCode;
+
+        return $this;
     }
 
     /**
-     * Get type.
-     *
      * @return string
      */
     public function getType()
@@ -83,33 +108,15 @@ class Url
     }
 
     /**
-     * Set type.
-     *
      * @param string $type
+     *
+     * @return $this
      */
     public function setType($type)
     {
         $this->type = $type;
-    }
 
-    /**
-     * Get depth.
-     *
-     * @return int
-     */
-    public function getDepth()
-    {
-        return $this->depth;
-    }
-
-    /**
-     * Set depth.
-     *
-     * @param int $depth
-     */
-    public function setDepth($depth)
-    {
-        $this->depth = $depth;
+        return $this;
     }
 
     /**
@@ -122,9 +129,73 @@ class Url
 
     /**
      * @param bool $timeout
+     *
+     * @return $this
      */
     public function setTimeout($timeout)
     {
         $this->timeout = $timeout;
+
+        return $this;
+    }
+
+    /**
+     * @return \DateTime
+     */
+    public function getCreated()
+    {
+        return $this->created;
+    }
+
+    /**
+     * @return int
+     */
+    public function getLeft()
+    {
+        return $this->left;
+    }
+
+    /**
+     * @return int
+     */
+    public function getRight()
+    {
+        return $this->right;
+    }
+
+    /**
+     * @return int
+     */
+    public function getDepth()
+    {
+        return $this->depth;
+    }
+
+    /**
+     * @return Url
+     */
+    public function getParent()
+    {
+        return $this->parent;
+    }
+
+    /**
+     * @param Url $parent
+     *
+     * @return $this
+     */
+    public function setParent($parent)
+    {
+        $this->parent = $parent;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Url[]
+     */
+    public function getChildren()
+    {
+        return $this->children;
     }
 }

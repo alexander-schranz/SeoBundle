@@ -150,7 +150,7 @@ class UrlTreeCrawler implements LoggerAwareInterface
             }
 
             $this->logger->info(sprintf('Found url "%s"', $link->getUri()));
-            $this->addUrl($link->getUri());
+            $this->addUrl($link->getUri(), $url);
         }
     }
 
@@ -158,13 +158,11 @@ class UrlTreeCrawler implements LoggerAwareInterface
      * Add url.
      *
      * @param string $uri
+     * @param Url $parent
      */
-    private function addUrl($uri)
+    private function addUrl($uri, $parent = null)
     {
-        // Split hash urls correctly.
-        $uri = explode('#', $uri, 2)[0];
-
-        $url = $this->getOrCreateUrl($uri);
+        $url = $this->getOrCreateUrl($uri, $parent);
 
         // If was crawled do nothing.
         if ($url->getStatusCode() || $url->getTimeout()) {
@@ -188,14 +186,18 @@ class UrlTreeCrawler implements LoggerAwareInterface
      * Get or create url.
      *
      * @param string $uri
+     * @param Url $parent
      *
      * @return Url
      */
-    private function getOrCreateUrl($uri)
+    private function getOrCreateUrl($uri, $parent = null)
     {
+        // Split hash urls correctly.
+        $uri = explode('#', $uri, 2)[0];
+
         if (!isset($this->urlList[$uri])) {
-            $url = new Url($uri);
-            $url->setDepth($this->currentDepth);
+            $url = new Url($uri, $this->currentDepth);
+            $url->setParent($parent);
 
             // Set type to external when external url.
             if ($this->isExternal($url)) {
