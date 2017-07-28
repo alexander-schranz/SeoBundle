@@ -17,7 +17,7 @@
     },
     "autoload": {
         "psr-4": {
-            "L91\\Bundle\\L91SeoBundle\\": ""
+            "L91\\Bundle\\SeoBundle\\": ""
         }
     }
 }
