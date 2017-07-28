@@ -39,7 +39,13 @@ class Crawler implements LoggerAwareInterface
         $urlTreeCrawler->setLogger($this->logger);
 
         foreach ($urlTreeCrawler->crawl() as $url) {
-            var_dump($url);
+            echo 'URI:          ' . $url->getUri() . PHP_EOL;
+            echo 'Type:         ' . $url->getType() . PHP_EOL;
+            echo 'Depth:        ' . $url->getDepth() . PHP_EOL;
+            echo 'StatusCode:   ' . $url->getStatusCode() . PHP_EOL;
+            echo 'Timeout:      ' . ($url->getTimeout() ? 'true' : 'false') . PHP_EOL;
+
+            echo PHP_EOL;
         }
     }
 }

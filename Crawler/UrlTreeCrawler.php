@@ -4,6 +4,7 @@ namespace L91\Bundle\SeoBundle\Crawler;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ConnectException;
+use GuzzleHttp\Exception\RequestException;
 use L91\Bundle\SeoBundle\Entity\Url;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Log\LoggerAwareInterface;
@@ -83,8 +84,6 @@ class UrlTreeCrawler implements LoggerAwareInterface
 
             /** @var Url $url */
             while($url = array_pop($urlList)) {
-                usleep(500000);
-
                 $this->logger->info(sprintf('Crawl url "%s" at depth "%s"', $url->getUri(), $this->currentDepth));
                 yield $this->crawlUrl($url);
             }
@@ -115,6 +114,8 @@ class UrlTreeCrawler implements LoggerAwareInterface
             $url->setStatusCode(0);
 
             return $url;
+        } catch (RequestException $e) {
+            $response = $e->getResponse();
         }
 
         $statusCode = $response->getStatusCode();
@@ -123,8 +124,22 @@ class UrlTreeCrawler implements LoggerAwareInterface
 
         switch ($statusCode) {
             case 200:
+            case 201:
+            case 202:
+            case 206:
                 if ($url->getType() == Url::TYPE_INTERNAL) {
                     $this->analyseContent($response->getBody()->getContents(), $url);
+                }
+
+                break;
+
+            case 301:
+            case 302:
+            case 303:
+            case 307:
+            case 308:
+                foreach ($response->getHeader('Location') as $uri) {
+                    $this->addUrl($uri, $url);
                 }
 
                 break;
@@ -162,6 +177,10 @@ class UrlTreeCrawler implements LoggerAwareInterface
      */
     private function addUrl($uri, $parent = null)
     {
+        if (!$this->isValidUri($uri)) {
+            return;
+        }
+
         $url = $this->getOrCreateUrl($uri, $parent);
 
         // If was crawled do nothing.
@@ -211,6 +230,20 @@ class UrlTreeCrawler implements LoggerAwareInterface
     }
 
     /**
+     * Is valid uri.
+     *
+     * @param string $uri
+     *
+     * @return bool
+     */
+    private function isValidUri($uri)
+    {
+        $parts = parse_url($uri);
+
+        return isset($parts['host']) && $parts['scheme'];
+    }
+
+    /**
      * Is external url.
      *
      * @param Url $url
@@ -219,7 +252,9 @@ class UrlTreeCrawler implements LoggerAwareInterface
      */
     private function isExternal(Url $url)
     {
-        return (strpos($url->getUri(), $this->uri) === false);
+        $currentHost = parse_url($this->uri)['host'];
+
+        return !in_array(parse_url($url->getUri())['host'], [$currentHost, 'www.' . $currentHost]);
     }
 
     /**
@@ -231,6 +266,15 @@ class UrlTreeCrawler implements LoggerAwareInterface
      */
     private function request($uri)
     {
-        return $this->client->request('GET', $uri, ['stats']);
+        return $this->client->request(
+            'GET',
+            $uri,
+            [
+                'headers' => [
+                    'User-Agent' => 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)'
+                ],
+                'allow_redirects' => false,
+            ]
+        );
     }
 }

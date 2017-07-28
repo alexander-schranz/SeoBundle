@@ -56,18 +56,12 @@ class Url
     private $children;
 
     /**
-     * @var \DateTime
-     */
-    private $created;
-
-    /**
      * @param string $uri
      */
     public function __construct($uri, $depth = 0)
     {
         $this->uri = $uri;
         $this->depth = $depth;
-        $this->created = new \DateTime();
         $this->children = new ArrayCollection();
     }
 
@@ -137,14 +131,6 @@ class Url
         $this->timeout = $timeout;
 
         return $this;
-    }
-
-    /**
-     * @return \DateTime
-     */
-    public function getCreated()
-    {
-        return $this->created;
     }
 
     /**
