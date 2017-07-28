@@ -2,11 +2,22 @@
     "name": "l91/seo-bundle",
     "description": "Symfony based seo bundle to crawl websites",
     "type": "bundle",
+    "license": "MIT",
+    "homepage": "https://github.com/alexander-schranz/SeoBundle",
+    "keywords": [
+        "symfony",
+        "seo",
+        "crawler"
+    ],
     "require": {
         "sensio/framework-extra-bundle": "~3.0",
         "symfony/symfony": "~2.8|~3.0",
         "guzzlehttp/guzzle": "~6.0",
         "doctrine/doctrine-bundle": "~1.6"
     },
-    "license": "MIT"
+    "autoload": {
+        "psr-4": {
+            "L91\\Bundle\\L91SeoBundle\\": ""
+        }
+    }
 }
