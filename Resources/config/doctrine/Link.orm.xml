@@ -1,0 +1,25 @@
+<doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping http://doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
+    <entity name="L91\Bundle\SeoBundle\Entity\Link"
+            table="seo_link"
+            repository-class="L91\Bundle\SeoBundle\Entity\Repository\LinkRepository">
+        <id name="id" type="integer" column="id">
+            <generator strategy="AUTO"/>
+        </id>
+
+        <many-to-one field="source" target-entity="L91\Bundle\SeoBundle\Entity\Url" inversed-by="outgoingLinks">
+            <cascade>
+                <cascade-persist/>
+            </cascade>
+            <join-column name="source_id" referenced-column-name="id" on-delete="CASCADE"/>
+        </many-to-one>
+
+        <many-to-one field="target" target-entity="L91\Bundle\SeoBundle\Entity\Url" inversed-by="incomingLinks">
+            <cascade>
+                <cascade-persist/>
+            </cascade>
+            <join-column name="target_id" referenced-column-name="id" on-delete="CASCADE"/>
+        </many-to-one>
+    </entity>
+</doctrine-mapping>

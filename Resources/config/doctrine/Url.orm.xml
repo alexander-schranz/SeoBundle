@@ -13,25 +13,31 @@
         <field name="statusCode" type="integer"/>
         <field name="type" type="string"/>
         <field name="timeout" type="boolean"/>
-
-        <!-- Tree -->
+        <field name="position" type="integer"/>
         <field name="left" column="left" type="integer">
             <gedmo:tree-left/>
         </field>
-
         <field name="right" column="right" type="integer">
             <gedmo:tree-right/>
         </field>
-
         <field name="depth" column="depth" type="integer">
             <gedmo:tree-level/>
         </field>
 
+        <many-to-one field="crawl" target-entity="L91\Bundle\SeoBundle\Entity\Crawl" inversed-by="urls">
+            <join-column name="crawl_id" referenced-column-name="id" on-delete="CASCADE"/>
+        </many-to-one>
         <many-to-one field="parent" target-entity="L91\Bundle\SeoBundle\Entity\Url" inversed-by="children">
             <join-column name="parent_id" referenced-column-name="id" on-delete="CASCADE"/>
             <gedmo:tree-parent/>
         </many-to-one>
 
+        <one-to-many field="outgoingLinks" target-entity="L91\Bundle\SeoBundle\Entity\Link" mapped-by="source">
+            <cascade>
+                <cascade-persist/>
+            </cascade>
+        </one-to-many>
+        <one-to-many field="incomingLinks" target-entity="L91\Bundle\SeoBundle\Entity\Link" mapped-by="target" />
         <one-to-many field="children" target-entity="L91\Bundle\SeoBundle\Entity\Url" mapped-by="parent">
             <order-by>
                 <order-by-field name="left" direction="ASC" />

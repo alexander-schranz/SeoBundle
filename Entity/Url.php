@@ -11,6 +11,16 @@ class Url
     const TYPE_EXTERNAL = 'external';
 
     /**
+     * @var int
+     */
+    private $id;
+
+    /**
+     * @var Crawl
+     */
+    private $crawl;
+
+    /**
      * @var string
      */
     private $uri;
@@ -46,6 +56,11 @@ class Url
     private $depth;
 
     /**
+     * @var int
+     */
+    private $position;
+
+    /**
      * @var Url
      */
     private $parent;
@@ -56,13 +71,39 @@ class Url
     private $children;
 
     /**
-     * @param string $uri
+     * @var Collection|Link[]
      */
-    public function __construct($uri, $depth = 0)
+    private $incomingLinks;
+
+    /**
+     * @var Collection|Link[]
+     */
+    private $outgoingLinks;
+
+    /**
+     * Url constructor.
+     * @param Crawl $crawl
+     * @param string $uri
+     * @param int $depth
+     * @param int $position
+     */
+    public function __construct(Crawl $crawl, $uri, $depth = 0, $position = 0)
     {
+        $this->crawl = $crawl;
         $this->uri = $uri;
         $this->depth = $depth;
+        $this->position = $position;
         $this->children = new ArrayCollection();
+        $this->incomingLinks = new ArrayCollection();
+        $this->outgoingLinks = new ArrayCollection();
+    }
+
+    /**
+     * @return int
+     */
+    public function getId()
+    {
+        return $this->id;
     }
 
     /**
@@ -71,6 +112,14 @@ class Url
     public function getUri()
     {
         return $this->uri;
+    }
+
+    /**
+     * @return Crawl
+     */
+    public function getCrawl()
+    {
+        return $this->crawl;
     }
 
     /**
@@ -158,6 +207,14 @@ class Url
     }
 
     /**
+     * @return int
+     */
+    public function getPosition()
+    {
+        return $this->position;
+    }
+
+    /**
      * @return Url
      */
     public function getParent()
@@ -183,5 +240,45 @@ class Url
     public function getChildren()
     {
         return $this->children;
+    }
+
+    /**
+     * @return Collection|Link[]
+     */
+    public function getOutgoingLinks()
+    {
+        return $this->outgoingLinks;
+    }
+
+    /**
+     * @param Link $link
+     *
+     * @return $this
+     */
+    public function addOutgoingLink(Link $link)
+    {
+        $this->outgoingLinks->add($link);
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Link[]
+     */
+    public function getIncomingLinks()
+    {
+        return $this->incomingLinks;
+    }
+
+    /**
+     * @param Link $link
+     *
+     * @return $this
+     */
+    public function addIncomingLink(Link $link)
+    {
+        $this->incomingLinks->add($link);
+
+        return $this;
     }
 }

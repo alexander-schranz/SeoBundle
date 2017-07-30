@@ -6,8 +6,12 @@
 
     <services>
         <service class="L91\Bundle\SeoBundle\Crawler\Crawler" id="l91_seo.crawler.crawler">
+            <argument type="service" id="doctrine.orm.entity_manager"/>
             <argument type="collection">
                 <argument key="timeout">2</argument>
+                <argument key="headers" type="collection">
+                    <argument key="User-Agent">Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)</argument>
+                </argument>
             </argument>
 
             <call method="setLogger">

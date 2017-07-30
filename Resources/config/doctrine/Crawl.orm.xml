@@ -1,0 +1,23 @@
+<doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping http://doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
+    <entity name="L91\Bundle\SeoBundle\Entity\Crawl"
+            table="seo_crawl"
+            repository-class="L91\Bundle\SeoBundle\Entity\Repository\CrawlRepository">
+        <id name="id" type="integer" column="id">
+            <generator strategy="AUTO"/>
+        </id>
+
+        <field name="uri" type="text"/>
+        <field name="depth" type="integer"/>
+        <field name="external" type="boolean"/>
+        <field name="clientOptions" type="json_array"/>
+        <field name="finished" type="boolean"/>
+
+        <one-to-many field="urls" target-entity="L91\Bundle\SeoBundle\Entity\Url" mapped-by="crawl">
+            <order-by>
+                <order-by-field name="position" direction="ASC" />
+            </order-by>
+        </one-to-many>
+    </entity>
+</doctrine-mapping>

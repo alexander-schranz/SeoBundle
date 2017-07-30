@@ -5,6 +5,8 @@ namespace L91\Bundle\SeoBundle\Crawler;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\Exception\RequestException;
+use L91\Bundle\SeoBundle\Entity\Crawl;
+use L91\Bundle\SeoBundle\Entity\Link;
 use L91\Bundle\SeoBundle\Entity\Url;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Log\LoggerAwareInterface;
@@ -17,9 +19,9 @@ class UrlTreeCrawler implements LoggerAwareInterface
     use LoggerAwareTrait;
 
     /**
-     * @var integer
+     * @var Crawl
      */
-    private $maxDepth;
+    private $crawl;
 
     /**
      * @var Client
@@ -27,24 +29,19 @@ class UrlTreeCrawler implements LoggerAwareInterface
     private $client;
 
     /**
-     * @var string
-     */
-    private $uri;
-
-    /**
-     * @var bool
-     */
-    private $external;
-
-    /**
      * @var array
      */
     private $queueTree = [];
 
     /**
-     * @var integer
+     * @var int
      */
     private $currentDepth = 0;
+
+    /**
+     * @var int
+     */
+    private $currentPosition = 0;
 
     /**
      * @var Url[]
@@ -54,18 +51,13 @@ class UrlTreeCrawler implements LoggerAwareInterface
     /**
      * UrlTreeCrawler constructor.
      *
-     * @param string $uri
-     * @param int $maxDepth
-     * @param array $clientOptions
-     * @param bool $external
+     * @param Crawl $crawl
      */
-    public function __construct($uri, $maxDepth = 0, $clientOptions = [], $external = false)
+    public function __construct(Crawl $crawl)
     {
-        $this->client = new Client($clientOptions);
-        $this->uri = $uri;
-        $this->addUrl($uri);
-        $this->maxDepth = $maxDepth;
-        $this->external = $external;
+        $this->crawl = $crawl;
+        $this->client = new Client($crawl->getClientOptions());
+        $this->addUrl($crawl->getUri());
         $this->logger = new NullLogger();
     }
 
@@ -74,7 +66,7 @@ class UrlTreeCrawler implements LoggerAwareInterface
      *
      * @return Url[]
      */
-    public function crawl()
+    public function run()
     {
         $this->urlList = [];
 
@@ -88,8 +80,8 @@ class UrlTreeCrawler implements LoggerAwareInterface
                 yield $this->crawlUrl($url);
             }
 
-            if ($this->currentDepth > $this->maxDepth) {
-                $this->logger->info(sprintf('Max depth "%s" reached', $this->maxDepth));
+            if ($this->currentDepth > $this->crawl->getDepth()) {
+                $this->logger->info(sprintf('Max depth "%s" reached', $this->crawl->getDepth()));
 
                 break;
             }
@@ -183,13 +175,19 @@ class UrlTreeCrawler implements LoggerAwareInterface
 
         $url = $this->getOrCreateUrl($uri, $parent);
 
+        if ($parent) {
+            $link = new Link($url, $parent);
+            $parent->addOutgoingLink($link);
+            $url->addIncomingLink($link);
+        }
+
         // If was crawled do nothing.
         if ($url->getStatusCode() || $url->getTimeout()) {
             return;
         }
 
         // If external is not activate do not crawl external urls.
-        if (!$this->external && $url->getType() === Url::TYPE_EXTERNAL) {
+        if (!$this->crawl->getExternal() && $url->getType() === Url::TYPE_EXTERNAL) {
             return;
         }
 
@@ -215,13 +213,11 @@ class UrlTreeCrawler implements LoggerAwareInterface
         $uri = explode('#', $uri, 2)[0];
 
         if (!isset($this->urlList[$uri])) {
-            $url = new Url($uri, $this->currentDepth);
+            ++$this->currentPosition;
+            $url = new Url($this->crawl, $uri, $this->currentDepth, $this->currentPosition);
             $url->setParent($parent);
-
-            // Set type to external when external url.
-            if ($this->isExternal($url)) {
-                $url->setType(Url::TYPE_EXTERNAL);
-            }
+            $url->setType($this->crawl->getTypeForUrl($url));
+            $this->crawl->addUrl($url);
 
             $this->urlList[$uri] = $url;
         }
@@ -244,20 +240,6 @@ class UrlTreeCrawler implements LoggerAwareInterface
     }
 
     /**
-     * Is external url.
-     *
-     * @param Url $url
-     *
-     * @return bool
-     */
-    private function isExternal(Url $url)
-    {
-        $currentHost = parse_url($this->uri)['host'];
-
-        return !in_array(parse_url($url->getUri())['host'], [$currentHost, 'www.' . $currentHost]);
-    }
-
-    /**
      * Request a specific url.
      *
      * @param string $uri
@@ -270,9 +252,6 @@ class UrlTreeCrawler implements LoggerAwareInterface
             'GET',
             $uri,
             [
-                'headers' => [
-                    'User-Agent' => 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)'
-                ],
                 'allow_redirects' => false,
             ]
         );
