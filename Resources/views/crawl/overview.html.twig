@@ -1,0 +1,32 @@
+{% extends 'L91SeoBundle::base.html.twig' %}
+
+{% block content %}
+    <h2>Crawl List</h2>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Uri</th>
+                <th>Depth</th>
+                <th>External</th>
+                <th>Finished</th>
+                <th>Created</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for crawl in crawlList %}
+                <tr>
+                    <td>
+                        <a href="{{ path('l91_seo.crawl.detail', { id: crawl.id }) }}">
+                            {{ crawl.uri }}
+                        </a>
+                    </td>
+                    <td>{{ crawl.depth }}</td>
+                    <td>{{ crawl.external ? 'true' : 'false' }}</td>
+                    <td>{{ crawl.finished ? 'true' : 'false' }}</td>
+                    <td>{{ crawl.created.format('Y-m-d H:i:s') }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

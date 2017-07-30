@@ -1,0 +1,149 @@
+{% extends 'L91SeoBundle::base.html.twig' %}
+
+{% block content %}
+    <br/>
+
+    <a href="{{ path('l91_seo.crawl.detail', { id: crawl.id }) }}">Back</a>
+
+    <br/>
+    <br/>
+
+    <div class="row">
+        <div class="col-md-6">
+            <table class="table table-striped">
+                <tr>
+                    <th>Url</th>
+                    <td>{{ url.uri }}</td>
+                </tr>
+
+                <tr>
+                    <th>Type</th>
+                    <td>{{ url.type }}</td>
+                </tr>
+
+                <tr>
+                    <th>Statuscode</th>
+                    <td>{{ url.statusCode }}</td>
+                </tr>
+
+                <tr>
+                    <th>Incoming</th>
+                    <td>{{ url.incomingLinks|length }}</td>
+                </tr>
+
+                <tr>
+                    <th>Outgoing</th>
+                    <td>{{ url.outgoingLinks|length }}</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <ul class="nav nav-tabs">
+        <li class="active">
+            <a href="#list" data-toggle="tab">List</a>
+        </li>
+
+        <li>
+            <a href="#tree" data-toggle="tab">Tree</a>
+        </li>
+
+        <li>
+            <a href="#chord" data-toggle="tab">Chord</a>
+        </li>
+    </ul>
+
+    <div class="tab-content">
+        <div id="list" class="tab-pane fade in active">
+            <h2>Incoming Links</h2>
+
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Position</th>
+                        <th>Uri</th>
+                        <th>Statuscode</th>
+                        <th>Type</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for link in url.incomingLinks %}
+                        {% set source = link.source %}
+
+                        {% set class = '' %}
+                        {% if source.statusCode >= 200 and source.statusCode < 300 %}
+                            {% set class = 'success' %}
+                        {% elseif source.statusCode >= 300 and source.statusCode < 400 %}
+                            {% set class = 'info' %}
+                        {% elseif source.statusCode >= 400 and source.statusCode < 500 %}
+                            {% set class = 'warning' %}
+                        {% elseif source.statusCode >= 500 and source.statusCode < 600 %}
+                            {% set class = 'error' %}
+                        {% endif %}
+
+                        <tr class="{{ class }}">
+                            <td>{{ source.position }}</td>
+                            <td>
+                                <a href="{{ path('l91_seo.crawl.url', { id: crawl.id, urlId: source.id }) }}">
+                                    {{ source.uri }}
+                                </a>
+                            </td>
+                            <td>{{ source.statusCode }}</td>
+                            <td>{{ source.type }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <h2>Outgoing Links</h2>
+
+            <table class="table table-striped">
+                <thead>
+                <tr>
+                    <th>Position</th>
+                    <th>Uri</th>
+                    <th>Statuscode</th>
+                    <th>Type</th>
+                </tr>
+                </thead>
+
+                <tbody>
+                {% for link in url.outgoingLinks %}
+                    {% set target = link.target %}
+
+                    {% set class = '' %}
+                    {% if target.statusCode >= 200 and target.statusCode < 300 %}
+                        {% set class = 'success' %}
+                    {% elseif target.statusCode >= 300 and target.statusCode < 400 %}
+                        {% set class = 'info' %}
+                    {% elseif target.statusCode >= 400 and target.statusCode < 500 %}
+                        {% set class = 'warning' %}
+                    {% elseif target.statusCode >= 500 and target.statusCode < 600 %}
+                        {% set class = 'error' %}
+                    {% endif %}
+
+                    <tr class="{{ class }}">
+                        <td>{{ target.position }}</td>
+                        <td>
+                            <a href="{{ path('l91_seo.crawl.url', { id: crawl.id, urlId: target.id }) }}">
+                                {{ target.uri }}
+                            </a>
+                        </td>
+                        <td>{{ target.statusCode }}</td>
+                        <td>{{ target.type }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div id="tree" class="tab-pane fade">
+
+        </div>
+
+        <div id="chord" class="tab-pane fade">
+
+        </div>
+    </div>
+{% endblock %}

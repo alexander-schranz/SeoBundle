@@ -11,8 +11,11 @@
         <field name="uri" type="text"/>
         <field name="depth" type="integer"/>
         <field name="external" type="boolean"/>
+        <field name="externalUrls" type="integer"/>
+        <field name="internalUrls" type="integer"/>
         <field name="clientOptions" type="json_array"/>
         <field name="finished" type="boolean"/>
+        <field name="created" type="datetime"/>
 
         <one-to-many field="urls" target-entity="L91\Bundle\SeoBundle\Entity\Url" mapped-by="crawl">
             <order-by>

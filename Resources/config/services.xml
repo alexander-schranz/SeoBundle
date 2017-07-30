@@ -18,5 +18,20 @@
                 <argument type="service" id="logger"/>
             </call>
         </service>
+
+        <service id="l91_seo.repository.crawl" class="L91\Bundle\SeoBundle\Entity\Repository\CrawlRepository">
+            <factory method="getRepository" service="doctrine.orm.entity_manager"/>
+            <argument>L91SeoBundle:Crawl</argument>
+        </service>
+
+        <service id="l91_seo.repository.url" class="L91\Bundle\SeoBundle\Entity\Repository\UrlRepository">
+            <factory method="getRepository" service="doctrine.orm.entity_manager"/>
+            <argument>L91SeoBundle:Url</argument>
+        </service>
+
+        <service id="l91_seo.repository.link" class="L91\Bundle\SeoBundle\Entity\Repository\LinkRepository">
+            <factory method="getRepository" service="doctrine.orm.entity_manager"/>
+            <argument>L91SeoBundle:Link</argument>
+        </service>
     </services>
 </container>

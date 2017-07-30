@@ -17,10 +17,12 @@ new Stof\DoctrineExtensionsBundle\StofDoctrineExtensionsBundle(),
 new L91\Bundle\SeoBundle\L91SeoBundle(),
 ```
 
-**Create database schema**
+**Add new routes**
 
-```bash
-bin/console doctrine:schema:update
+```yml
+l91_seo:
+    resource: '@L91SeoBundle/Resources/config/routing.xml'
+    prefix: /crawler
 ```
 
 **Gedmo Tree Extension Configuration**
@@ -40,6 +42,12 @@ stof_doctrine_extensions:
     orm:
         default:
           tree: true
+```
+
+**Create database schema**
+
+```bash
+bin/console doctrine:schema:update
 ```
 
 ## Usage

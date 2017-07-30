@@ -1,0 +1,125 @@
+{% extends 'L91SeoBundle::base.html.twig' %}
+
+{% block content %}
+    <br/>
+
+    <a href="{{ path('l91_seo.crawl.overview') }}">Back</a>
+
+    <br/>
+    <br/>
+
+    <div class="row">
+        <div class="col-md-6">
+            <table class="table table-striped">
+                <tr>
+                    <th>Url</th>
+                    <td>{{ crawl.uri }}</td>
+                </tr>
+
+                <tr>
+                    <th>Depth</th>
+                    <td>{{ crawl.depth }}</td>
+                </tr>
+
+                <tr>
+                    <th>External</th>
+                    <td>{{ crawl.external ? 'true' : 'false' }}</td>
+                </tr>
+
+                <tr>
+                    <th>Finished</th>
+                    <td>{{ crawl.finished ? 'true' : 'false' }}</td>
+                </tr>
+
+                <tr>
+                    <th>Created</th>
+                    <td>{{ crawl.created.format('Y-m-d H:i:s') }}</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="col-md-6">
+            <table class="table table-striped">
+                <tr>
+                    <th>Total</th>
+                    <td>{{ crawl.urls|length }}</td>
+                </tr>
+
+                <tr>
+                    <th>Internal</th>
+                    <td>{{ crawl.internalUrls }}</td>
+                </tr>
+
+                <tr>
+                    <th>External</th>
+                    <td>{{ crawl.externalUrls }}</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <ul class="nav nav-tabs">
+        <li class="active">
+            <a href="#list" data-toggle="tab">List</a>
+        </li>
+        <li>
+            <a href="#tree" data-toggle="tab">Tree</a>
+        </li>
+        <li>
+            <a href="#chord" data-toggle="tab">Chord</a>
+        </li>
+    </ul>
+
+    <div class="tab-content">
+        <div id="list" class="tab-pane fade in active">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Position</th>
+                        <th>Uri</th>
+                        <th>Statuscode</th>
+                        <th>Type</th>
+                        <th>Incoming</th>
+                        <th>Outgoing</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for url in crawl.urls %}
+                        {% set class = '' %}
+                        {% if url.statusCode >= 200 and url.statusCode < 300 %}
+                            {% set class = 'success' %}
+                        {% elseif url.statusCode >= 300 and url.statusCode < 400 %}
+                            {% set class = 'info' %}
+                        {% elseif url.statusCode >= 400 and url.statusCode < 500 %}
+                            {% set class = 'warning' %}
+                        {% elseif url.statusCode >= 500 and url.statusCode < 600 %}
+                            {% set class = 'error' %}
+                        {% endif %}
+
+                        <tr class="{{ class }}">
+                            <td>{{ url.position }}</td>
+                            <td>
+                                <a href="{{ path('l91_seo.crawl.url', { id: crawl.id, urlId: url.id }) }}">
+                                    {{ url.uri }}
+                                </a>
+                            </td>
+                            <td>{{ url.statusCode }}</td>
+                            <td>{{ url.type }}</td>
+                            <td>{{ url.incomingLinks|length }}</td>
+                            <td>{{ url.outgoingLinks|length }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div id="tree" class="tab-pane fade">
+
+        </div>
+
+        <div id="chord" class="tab-pane fade">
+
+        </div>
+    </div>
+{% endblock %}

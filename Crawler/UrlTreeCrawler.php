@@ -175,8 +175,8 @@ class UrlTreeCrawler implements LoggerAwareInterface
 
         $url = $this->getOrCreateUrl($uri, $parent);
 
-        if ($parent) {
-            $link = new Link($url, $parent);
+        if ($parent && $parent->getUri() !== $url->getUri()) {
+            $link = new Link($parent, $url);
             $parent->addOutgoingLink($link);
             $url->addIncomingLink($link);
         }

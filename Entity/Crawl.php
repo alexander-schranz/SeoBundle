@@ -20,12 +20,32 @@ class Crawl
     /**
      * @var integer
      */
-    private $depth;
+    private $depth = 0;
 
     /**
      * @var bool
      */
     private $external;
+
+    /**
+     * @var int
+     */
+    private $externalUrls = 0;
+
+    /**
+     * @var int
+     */
+    private $internalUrls = 0;
+
+    /**
+     * @var bool
+     */
+    private $finished = false;
+
+    /**
+     * @var \DateTime
+     */
+    private $created;
 
     /**
      * @var array
@@ -36,11 +56,6 @@ class Crawl
      * @var Collection|Url[]
      */
     private $urls;
-
-    /**
-     * @var bool
-     */
-    private $finished = false;
 
     /**
      * Crawl constructor.
@@ -55,6 +70,7 @@ class Crawl
         $this->depth = $depth;
         $this->external = $external;
         $this->clientOptions = $clientOptions;
+        $this->created = new \DateTime();
         $this->urls = new ArrayCollection();
     }
 
@@ -119,6 +135,62 @@ class Crawl
     }
 
     /**
+     * @return \DateTime
+     */
+    public function getCreated()
+    {
+        return $this->created;
+    }
+
+    /**
+     * @return $this;
+     */
+    public function increaseExternalUrls()
+    {
+        ++$this->externalUrls;
+
+        return $this;
+    }
+
+    /**
+     * @return $this;
+     */
+    public function increaseInternalUrls()
+    {
+        ++$this->internalUrls;
+
+        return $this;
+    }
+
+    /**
+     * @param string $type
+     *
+     * @return $this;
+     */
+    public function increaseByType($type)
+    {
+        $type === Url::TYPE_INTERNAL ? ++$this->internalUrls : ++$this->externalUrls;
+
+        return $this;
+    }
+
+    /**
+     * @return int
+     */
+    public function getExternalUrls()
+    {
+        return $this->externalUrls;
+    }
+
+    /**
+     * @return int
+     */
+    public function getInternalUrls()
+    {
+        return $this->internalUrls;
+    }
+
+    /**
      * @return Collection|Url[]
      */
     public function getUrls()
@@ -134,6 +206,7 @@ class Crawl
     public function addUrl(Url $url)
     {
         $this->urls->add($url);
+        $this->increaseByType($url->getType());
 
         return $this;
     }

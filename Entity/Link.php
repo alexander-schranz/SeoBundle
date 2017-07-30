@@ -26,8 +26,8 @@ class Link
      */
     public function __construct(Url $source, Url $target)
     {
-        $this->target = $target;
         $this->source = $source;
+        $this->target = $target;
     }
 
     /**
