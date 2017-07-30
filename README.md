@@ -25,7 +25,7 @@ bin/console doctrine:schema:update
 
 **Gedmo Tree Extension Configuration**
 
-```xml
+```yml
 doctrine:
     orm:
         mappings:
@@ -35,6 +35,11 @@ doctrine:
                 dir: "%kernel.root_dir%/../vendor/gedmo/doctrine-extensions/lib/Gedmo/Tree/Entity"
                 alias: GedmoTree
                 is_bundle: false
+
+stof_doctrine_extensions:
+    orm:
+        default:
+          tree: true
 ```
 
 ## Usage

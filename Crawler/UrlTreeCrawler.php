@@ -72,7 +72,6 @@ class UrlTreeCrawler implements LoggerAwareInterface
 
         /** @var Url[] $uriList */
         while ($urlList = array_pop($this->queueTree)) {
-            ++$this->currentDepth;
 
             /** @var Url $url */
             while($url = array_pop($urlList)) {
@@ -80,6 +79,7 @@ class UrlTreeCrawler implements LoggerAwareInterface
                 yield $this->crawlUrl($url);
             }
 
+            ++$this->currentDepth;
             if ($this->currentDepth > $this->crawl->getDepth()) {
                 $this->logger->info(sprintf('Max depth "%s" reached', $this->crawl->getDepth()));
 
@@ -156,7 +156,7 @@ class UrlTreeCrawler implements LoggerAwareInterface
                 continue;
             }
 
-            $this->logger->info(sprintf('Found url "%s"', $link->getUri()));
+            $this->logger->debug(sprintf('Found url "%s"', $link->getUri()));
             $this->addUrl($link->getUri(), $url);
         }
     }
@@ -214,7 +214,7 @@ class UrlTreeCrawler implements LoggerAwareInterface
 
         if (!isset($this->urlList[$uri])) {
             ++$this->currentPosition;
-            $url = new Url($this->crawl, $uri, $this->currentDepth, $this->currentPosition);
+            $url = new Url($this->crawl, $uri, $this->currentDepth + 1, $this->currentPosition);
             $url->setParent($parent);
             $url->setType($this->crawl->getTypeForUrl($url));
             $this->crawl->addUrl($url);
