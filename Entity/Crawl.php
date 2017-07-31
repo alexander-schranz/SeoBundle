@@ -191,6 +191,16 @@ class Crawl
     }
 
     /**
+     * Get total.
+     *
+     * @return int
+     */
+    public function getTotal()
+    {
+        return ($this->internalUrls + $this->externalUrls);
+    }
+
+    /**
      * @return Collection|Url[]
      */
     public function getUrls()
@@ -209,6 +219,51 @@ class Crawl
         $this->increaseByType($url->getType());
 
         return $this;
+    }
+
+    /**
+     * Get matrix.
+     *
+     * @return array
+     */
+    public function getMatrix()
+    {
+        $count = $this->getTotal();
+        $matrix = [];
+
+        foreach ($this->urls as $url) {
+            $line = array_fill(0, $count, 0);
+
+            foreach ($url->getIncomingLinks() as $link) {
+                ++$line[$link->getSource()->getPosition() -  1];
+                ++$line[$url->getPosition() - 1];
+            }
+
+            foreach ($url->getOutgoingLinks() as $link) {
+                ++$line[$link->getTarget()->getPosition() -  1];
+                ++$line[$url->getPosition() - 1];
+            }
+
+            $matrix[] = $line;
+        }
+
+        return $matrix;
+    }
+
+    /**
+     * Get titles.
+     *
+     * @return array
+     */
+    public function getTitles()
+    {
+        $titles = [];
+
+        foreach ($this->urls as $url) {
+            $titles[$url->getPosition() - 1] = $url->getUri();
+        }
+
+        return $titles;
     }
 
     /**
