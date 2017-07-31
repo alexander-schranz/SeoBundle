@@ -14,6 +14,9 @@
         <field name="statusCode" type="integer"/>
         <field name="type" type="string"/>
         <field name="timeout" type="boolean"/>
+        <field name="noIndex" type="boolean"/>
+        <field name="noFollow" type="boolean"/>
+        <field name="sitemap" type="boolean"/>
         <field name="position" type="integer"/>
         <field name="left" column="lft" type="integer">
             <gedmo:tree-left/>

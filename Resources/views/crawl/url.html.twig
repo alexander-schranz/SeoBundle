@@ -36,6 +36,11 @@
                 </tr>
 
                 <tr>
+                    <th>Robots</th>
+                    <td>{{ url.noIndex ? 'noIndex' : 'index' }}, {{ url.noFollow ? 'noFollow' : 'follow' }}</td>
+                </tr>
+
+                <tr>
                     <th>Incoming</th>
                     <td>{{ url.incomingLinks|length }}</td>
                 </tr>

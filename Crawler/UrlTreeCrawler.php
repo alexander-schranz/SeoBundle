@@ -105,7 +105,7 @@ class UrlTreeCrawler implements LoggerAwareInterface
     private function crawlUrl(Url $url)
     {
         try {
-            $response = $this->request($url->getUri());
+            $response = $this->request($url);
         } catch (ConnectException $e) {
             $url->setTimeout(true);
             $url->setStatusCode(0);
@@ -126,8 +126,14 @@ class UrlTreeCrawler implements LoggerAwareInterface
         $url->setTimeout(false);
         $url->setStatusCode($statusCode);
 
+        // Check robots header
+        $robotsHeaderTags = $response->getHeader('X-Robots-Tag');
+        if (count($robotsHeaderTags)) {
+            $this->setRobotsData($url, $robotsHeaderTags[0]);
+        }
+
+        // Do not crawl content of external urls
         if ($url->getType() === Url::TYPE_EXTERNAL) {
-            // Do not crawl content of external urls.
             return $url;
         }
 
@@ -136,9 +142,7 @@ class UrlTreeCrawler implements LoggerAwareInterface
             case 201:
             case 202:
             case 206:
-                if ($url->getType() == Url::TYPE_INTERNAL) {
-                    $this->analyseContent($response->getBody()->getContents(), $url);
-                }
+                $this->analyseContent($response->getBody()->getContents(), $url);
 
                 break;
 
@@ -166,6 +170,20 @@ class UrlTreeCrawler implements LoggerAwareInterface
     private function analyseContent($content, Url $url)
     {
         $crawler = new Crawler($content, $url->getUri());
+
+        // Check robots meta tag
+        $robotsMetaTags = $crawler->filter('head meta[name=robots], head meta[name=ROBOTS]');
+
+        if ($robotsMetaTags->count()) {
+            $robotsMetaTagContent = $robotsMetaTags->first()->attr('content');
+            $this->setRobotsData($url, $robotsMetaTagContent);
+        }
+
+        // Do not crawl content if link is on noFollow
+        if ($url->getNoFollow()) {
+            return;
+        }
+
         foreach ($crawler->filter('a, link, area')->links() as $link) {
             if ($link->getNode()->nodeName === 'link'
                 && !in_array($link->getNode()->getAttribute('rel'), ['prev', 'next', 'canonical'])
@@ -175,6 +193,25 @@ class UrlTreeCrawler implements LoggerAwareInterface
 
             $this->logger->debug(sprintf('Found url "%s"', $link->getUri()));
             $this->addUrl($link->getUri(), $url);
+        }
+    }
+
+    /**
+     * Set robots data.
+     *
+     * @param Url $url
+     * @param string $robotsMetaTagContent
+     */
+    private function setRobotsData(Url $url, $robotsMetaTagContent)
+    {
+        $robotsMetaTagContent = strtolower($robotsMetaTagContent);
+
+        if (strpos($robotsMetaTagContent, 'noindex') !== false) {
+            $url->setNoIndex(true);
+        }
+
+        if (strpos($robotsMetaTagContent, 'nofollow') !== false) {
+            $url->setNoFollow(true);
         }
     }
 
@@ -203,17 +240,17 @@ class UrlTreeCrawler implements LoggerAwareInterface
             }
         }
 
-        // If was crawled do nothing.
+        // If was crawled do nothing
         if ($url->getStatusCode() || $url->getTimeout()) {
             return;
         }
 
-        // If external is not activate do not crawl external urls.
+        // If external is not activate do not crawl external urls
         if (!$this->crawl->getExternal() && $url->getType() === Url::TYPE_EXTERNAL) {
             return;
         }
 
-        // Else add url to crawl list.
+        // Else add url to crawl list
         if (!isset($this->queueTree[$url->getDepth()])) {
             $this->queueTree[$url->getDepth()] = [];
         }
@@ -231,7 +268,7 @@ class UrlTreeCrawler implements LoggerAwareInterface
      */
     private function getOrCreateUrl($uri, $parent = null)
     {
-        // Split hash urls correctly.
+        // Split hash urls correctly
         $uri = explode('#', $uri, 2)[0];
 
         if (!isset($this->urlList[$uri])) {
@@ -264,18 +301,21 @@ class UrlTreeCrawler implements LoggerAwareInterface
     /**
      * Request a specific url.
      *
-     * @param string $uri
+     * @param Url $url
      *
      * @return ResponseInterface
      */
-    private function request($uri)
+    private function request(Url $url)
     {
         return $this->client->request(
-            'GET',
-            $uri,
-            [
+            $url->getType() === Url::TYPE_EXTERNAL ? 'HEAD' : 'GET',
+            $url->getUri(),
+            array_filter([
                 'allow_redirects' => false,
-            ]
+                'headers' => [
+                    'Referer' => $url->getParent() ? $url->getParent()->getUri() : null,
+                ],
+            ])
         );
     }
 }

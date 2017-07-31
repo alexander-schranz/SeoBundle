@@ -38,6 +38,21 @@ class Url
     /**
      * @var bool
      */
+    private $noIndex = false;
+
+    /**
+     * @var bool
+     */
+    private $noFollow = false;
+
+    /**
+     * @var bool
+     */
+    private $sitemap = false;
+
+    /**
+     * @var bool
+     */
     private $timeout = false;
 
     /**
@@ -158,6 +173,66 @@ class Url
     public function setType($type)
     {
         $this->type = $type;
+
+        return $this;
+    }
+
+    /**
+     * @return bool
+     */
+    public function getNoIndex()
+    {
+        return $this->noIndex;
+    }
+
+    /**
+     * @param bool $noIndex
+     *
+     * @return $this
+     */
+    public function setNoIndex($noIndex)
+    {
+        $this->noIndex = $noIndex;
+
+        return $this;
+    }
+
+    /**
+     * @return bool
+     */
+    public function getNoFollow()
+    {
+        return $this->noFollow;
+    }
+
+    /**
+     * @param bool $noFollow
+     *
+     * @return $this
+     */
+    public function setNoFollow($noFollow)
+    {
+        $this->noFollow = $noFollow;
+
+        return $this;
+    }
+
+    /**
+     * @return bool
+     */
+    public function getSitemap()
+    {
+        return $this->sitemap;
+    }
+
+    /**
+     * @param bool $sitemap
+     *
+     * @return $this
+     */
+    public function setSitemap($sitemap)
+    {
+        $this->sitemap = $sitemap;
 
         return $this;
     }
