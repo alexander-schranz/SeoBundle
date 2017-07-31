@@ -46,7 +46,7 @@
             <table class="table table-striped">
                 <tr>
                     <th>Total</th>
-                    <td>{{ crawl.urls|length }}</td>
+                    <td>{{ crawl.internalUrls + crawl.externalUrls }}</td>
                 </tr>
 
                 <tr>
@@ -113,8 +113,8 @@
                             <td>{{ url.timeout ? 'timeout' : url.statusCode }}</td>
                             <td>{{ url.type }}</td>
                             <td>{{ url.depth }}</td>
-                            <td>{{ url.incomingLinks|length }}</td>
-                            <td>{{ url.outgoingLinks|length }}</td>
+                            <td>{{ url.incomingLinksCount }}</td>
+                            <td>{{ url.outgoingLinksCount }}</td>
                         </tr>
                     {% endfor %}
                 </tbody>

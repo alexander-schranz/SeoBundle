@@ -59,6 +59,7 @@ class Crawler implements LoggerAwareInterface
                 'Type:         ' . $url->getType() . PHP_EOL .
                 'Depth:        ' . $url->getDepth() . PHP_EOL .
                 'StatusCode:   ' . $url->getStatusCode() . PHP_EOL .
+                'Position:     ' . $url->getPosition() . '/' . $urlTreeCrawler->getFoundUrls() . PHP_EOL .
                 'Timeout:      ' . ($url->getTimeout() ? 'true' : 'false') . PHP_EOL .
                 PHP_EOL);
 

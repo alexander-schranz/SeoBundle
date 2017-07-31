@@ -73,13 +73,10 @@ class UrlTreeCrawler implements LoggerAwareInterface
      */
     public function run()
     {
-        $this->urlList = [];
-
         /** @var Url[] $uriList */
-        while ($urlList = array_pop($this->queueTree)) {
-
+        while ($urlList = array_shift($this->queueTree)) {
             /** @var Url $url */
-            while($url = array_pop($urlList)) {
+            while($url = array_shift($urlList)) {
                 $this->logger->info(sprintf('Crawl url "%s" at depth "%s"', $url->getUri(), $this->currentDepth));
                 yield $this->crawlUrl($url);
             }
@@ -93,6 +90,16 @@ class UrlTreeCrawler implements LoggerAwareInterface
         }
 
         $this->logger->info(sprintf('Finished crawl with "%s" results', count($this->urlList)));
+    }
+
+    /**
+     * Get found urls.
+     *
+     * @return int
+     */
+    public function getFoundUrls()
+    {
+        return count($this->urlList);
     }
 
     /**
@@ -223,11 +230,20 @@ class UrlTreeCrawler implements LoggerAwareInterface
      */
     private function addUrl($uri, $parent = null)
     {
+        $uri = explode('#', $uri, 2)[0];
+
         if (!$this->isValidUri($uri)) {
             return;
         }
 
-        $url = $this->getOrCreateUrl($uri, $parent);
+        $isNewUrl = false;
+
+        $url = $this->getUrl($uri);
+
+        if (!$url) {
+            $url = $this->createUrl($uri, $parent);
+            $isNewUrl = true;
+        }
 
         if ($parent && $parent->getUri() !== $url->getUri()) {
             $link = new Link($parent, $url);
@@ -240,8 +256,8 @@ class UrlTreeCrawler implements LoggerAwareInterface
             }
         }
 
-        // If was crawled do nothing
-        if ($url->getStatusCode() || $url->getTimeout()) {
+        // If in queue or was crawled do nothing
+        if (!$isNewUrl) {
             return;
         }
 
@@ -259,29 +275,40 @@ class UrlTreeCrawler implements LoggerAwareInterface
     }
 
     /**
-     * Get or create url.
+     * Get url.
+     *
+     * @param string $uri
+     *
+     * @return Url|null
+     */
+    private function getUrl($uri)
+    {
+        if (!isset($this->urlList[$uri])) {
+            return;
+        }
+
+        return $this->urlList[$uri];
+    }
+
+    /**
+     * Create url.
      *
      * @param string $uri
      * @param Url $parent
      *
      * @return Url
      */
-    private function getOrCreateUrl($uri, $parent = null)
+    private function createUrl($uri, $parent = null)
     {
-        // Split hash urls correctly
-        $uri = explode('#', $uri, 2)[0];
+        ++$this->currentPosition;
+        $url = new Url($this->crawl, $uri, $parent ? $parent->getDepth() + 1 : 0, $this->currentPosition);
+        $url->setParent($parent);
+        $url->setType($this->crawl->getTypeForUrl($url));
+        $this->crawl->addUrl($url);
 
-        if (!isset($this->urlList[$uri])) {
-            ++$this->currentPosition;
-            $url = new Url($this->crawl, $uri, $this->currentDepth + 1, $this->currentPosition);
-            $url->setParent($parent);
-            $url->setType($this->crawl->getTypeForUrl($url));
-            $this->crawl->addUrl($url);
+        $this->urlList[$uri] = $url;
 
-            $this->urlList[$uri] = $url;
-        }
-
-        return $this->urlList[$uri];
+        return $url;
     }
 
     /**

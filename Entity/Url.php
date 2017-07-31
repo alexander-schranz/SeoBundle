@@ -56,6 +56,26 @@ class Url
     private $timeout = false;
 
     /**
+     * @var Collection|Link[]
+     */
+    private $incomingLinks;
+
+    /**
+     * @var Collection|Link[]
+     */
+    private $outgoingLinks;
+
+    /**
+     * @var int
+     */
+    private $incomingLinksCount = 0;
+
+    /**
+     * @var int
+     */
+    private $outgoingLinksCount = 0;
+
+    /**
      * @var int
      */
     private $left;
@@ -84,16 +104,6 @@ class Url
      * @var Collection|Url[]
      */
     private $children;
-
-    /**
-     * @var Collection|Link[]
-     */
-    private $incomingLinks;
-
-    /**
-     * @var Collection|Link[]
-     */
-    private $outgoingLinks;
 
     /**
      * Url constructor.
@@ -343,6 +353,22 @@ class Url
     }
 
     /**
+     * @return int
+     */
+    public function getIncomingLinksCount()
+    {
+        return $this->incomingLinksCount;
+    }
+
+    /**
+     * @return int
+     */
+    public function getOutgoingLinksCount()
+    {
+        return $this->outgoingLinksCount;
+    }
+
+    /**
      * @return Collection|Link[]
      */
     public function getOutgoingLinks()
@@ -358,6 +384,7 @@ class Url
     public function addOutgoingLink(Link $link)
     {
         $this->outgoingLinks->add($link);
+        ++$this->outgoingLinksCount;
 
         return $this;
     }
@@ -378,6 +405,7 @@ class Url
     public function addIncomingLink(Link $link)
     {
         $this->incomingLinks->add($link);
+        ++$this->incomingLinksCount;
 
         return $this;
     }

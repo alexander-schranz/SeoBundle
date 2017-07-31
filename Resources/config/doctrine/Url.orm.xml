@@ -18,6 +18,8 @@
         <field name="noFollow" type="boolean"/>
         <field name="sitemap" type="boolean"/>
         <field name="position" type="integer"/>
+        <field name="outgoingLinksCount" type="integer"/>
+        <field name="incomingLinksCount" type="integer"/>
         <field name="left" column="lft" type="integer">
             <gedmo:tree-left/>
         </field>
