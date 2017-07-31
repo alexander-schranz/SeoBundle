@@ -76,7 +76,7 @@
 
     <div class="tab-content">
         <div id="list" class="tab-pane fade in active">
-            <table class="table table-striped">
+            <table id="table" class="table table-striped">
                 <thead>
                     <tr>
                         <th>Position</th>
@@ -98,7 +98,7 @@
                             {% set class = 'info' %}
                         {% elseif url.statusCode >= 400 and url.statusCode < 500 %}
                             {% set class = 'danger' %}
-                        {% elseif url.statusCode >= 500 and url.statusCode < 600 %}
+                        {% elseif url.statusCode >= 500 and url.statusCode < 600 or url.timeout %}
                             {% set class = 'danger' %}
                         {% endif %}
 
