@@ -112,6 +112,13 @@ class UrlTreeCrawler implements LoggerAwareInterface
 
             return $url;
         } catch (RequestException $e) {
+            if (!$e->hasResponse()) {
+                $url->setTimeout(false);
+                $url->setStatusCode(0);
+
+                return $url;
+            }
+
             $response = $e->getResponse();
         }
 
