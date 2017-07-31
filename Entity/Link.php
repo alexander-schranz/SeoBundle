@@ -53,4 +53,12 @@ class Link
     {
         return $this->target;
     }
+
+    /**
+     * @return string
+     */
+    public function getKey()
+    {
+        return $this->source->getUri() . ' -> ' . $this->target->getUri();
+    }
 }

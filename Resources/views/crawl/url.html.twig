@@ -13,7 +13,11 @@
             <table class="table table-striped">
                 <tr>
                     <th>Url</th>
-                    <td>{{ url.uri }}</td>
+                    <td>
+                        <a href="{{ url.uri }}" target="_blank">
+                            {{ url.uri }}
+                        </a>
+                    </td>
                 </tr>
 
                 <tr>
@@ -24,6 +28,11 @@
                 <tr>
                     <th>Statuscode</th>
                     <td>{{ url.statusCode }}</td>
+                </tr>
+
+                <tr>
+                    <th>Depth</th>
+                    <td>{{ url.depth }}</td>
                 </tr>
 
                 <tr>
@@ -38,6 +47,24 @@
             </table>
         </div>
     </div>
+
+    <h3>Breadcrumb</h3>
+
+    <table class="table table-striped">
+        {% for parent in url.breadcrumb %}
+            <tr>
+                <td>
+                    <a class="break-word"
+                       href="{{ path('l91_seo.crawl.url', { id: crawl.id, urlId: parent.id }) }}">
+                        {{ parent.uri }}
+                    </a>
+                    <br>
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
+
+    <br/>
 
     <ul class="nav nav-tabs">
         <li class="active">
@@ -77,9 +104,9 @@
                         {% elseif source.statusCode >= 300 and source.statusCode < 400 %}
                             {% set class = 'info' %}
                         {% elseif source.statusCode >= 400 and source.statusCode < 500 %}
-                            {% set class = 'warning' %}
+                            {% set class = 'danger' %}
                         {% elseif source.statusCode >= 500 and source.statusCode < 600 %}
-                            {% set class = 'error' %}
+                            {% set class = 'danger' %}
                         {% endif %}
 
                         <tr class="{{ class }}">

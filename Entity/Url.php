@@ -235,6 +235,31 @@ class Url
     }
 
     /**
+     * @return Url[]
+     */
+    public function getBreadcrumb()
+    {
+        return array_reverse($this->generateBreadcrumb($this));
+    }
+
+    /**
+     * @param Url $url
+     * @param array $list
+     *
+     * @return Url[]
+     */
+    protected function generateBreadcrumb($url, $list = [])
+    {
+        $list[] = $url;
+
+        if ($url->getParent()) {
+            $list = $this->generateBreadcrumb($url->getParent(), $list);
+        }
+
+        return $list;
+    }
+
+    /**
      * @return Collection|Url[]
      */
     public function getChildren()

@@ -4,6 +4,10 @@
     <entity name="L91\Bundle\SeoBundle\Entity\Link"
             table="seo_link"
             repository-class="L91\Bundle\SeoBundle\Entity\Repository\LinkRepository">
+        <unique-constraints>
+            <unique-constraint columns="source_id,target_id"/>
+        </unique-constraints>
+
         <id name="id" type="integer" column="id">
             <generator strategy="AUTO"/>
         </id>

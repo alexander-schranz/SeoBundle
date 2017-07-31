@@ -13,7 +13,11 @@
             <table class="table table-striped">
                 <tr>
                     <th>Url</th>
-                    <td>{{ crawl.uri }}</td>
+                    <td>
+                        <a href="{{ crawl.uri }}" target="_blank">
+                            {{ crawl.uri }}
+                        </a>
+                    </td>
                 </tr>
 
                 <tr>
@@ -79,6 +83,7 @@
                         <th>Uri</th>
                         <th>Statuscode</th>
                         <th>Type</th>
+                        <th>Depth</th>
                         <th>Incoming</th>
                         <th>Outgoing</th>
                     </tr>
@@ -92,20 +97,22 @@
                         {% elseif url.statusCode >= 300 and url.statusCode < 400 %}
                             {% set class = 'info' %}
                         {% elseif url.statusCode >= 400 and url.statusCode < 500 %}
-                            {% set class = 'warning' %}
+                            {% set class = 'danger' %}
                         {% elseif url.statusCode >= 500 and url.statusCode < 600 %}
-                            {% set class = 'error' %}
+                            {% set class = 'danger' %}
                         {% endif %}
 
                         <tr class="{{ class }}">
                             <td>{{ url.position }}</td>
                             <td>
-                                <a href="{{ path('l91_seo.crawl.url', { id: crawl.id, urlId: url.id }) }}">
+                                <a href="{{ path('l91_seo.crawl.url', { id: crawl.id, urlId: url.id }) }}"
+                                   class="break-word">
                                     {{ url.uri }}
                                 </a>
                             </td>
-                            <td>{{ url.statusCode }}</td>
+                            <td>{{ url.timeout ? 'timeout' : url.statusCode }}</td>
                             <td>{{ url.type }}</td>
+                            <td>{{ url.depth }}</td>
                             <td>{{ url.incomingLinks|length }}</td>
                             <td>{{ url.outgoingLinks|length }}</td>
                         </tr>

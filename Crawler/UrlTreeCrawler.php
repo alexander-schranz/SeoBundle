@@ -49,6 +49,11 @@ class UrlTreeCrawler implements LoggerAwareInterface
     private $urlList = [];
 
     /**
+     * @var Url[]
+     */
+    private $linkList = [];
+
+    /**
      * UrlTreeCrawler constructor.
      *
      * @param Crawl $crawl
@@ -114,6 +119,11 @@ class UrlTreeCrawler implements LoggerAwareInterface
         $url->setTimeout(false);
         $url->setStatusCode($statusCode);
 
+        if ($url->getType() === Url::TYPE_EXTERNAL) {
+            // Do not crawl content of external urls.
+            return $url;
+        }
+
         switch ($statusCode) {
             case 200:
             case 201:
@@ -177,8 +187,13 @@ class UrlTreeCrawler implements LoggerAwareInterface
 
         if ($parent && $parent->getUri() !== $url->getUri()) {
             $link = new Link($parent, $url);
-            $parent->addOutgoingLink($link);
-            $url->addIncomingLink($link);
+            $key = $link->getKey();
+
+            if (!isset($this->linkList[$key])) {
+                $parent->addOutgoingLink($link);
+                $url->addIncomingLink($link);
+                $this->linkList[$key] = $link;
+            }
         }
 
         // If was crawled do nothing.
